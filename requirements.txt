@@ -1,0 +1,13 @@
+django
+langchain
+langgraph 
+crewai 
+requests 
+beautifulsoup4
+sentence-transformers
+faiss-cpu
+duckduckgo-search
+langchain-groq
+newspaper3k
+faiss-cpu
+djangorestframework
