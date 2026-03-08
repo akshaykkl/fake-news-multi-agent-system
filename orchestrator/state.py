@@ -8,6 +8,8 @@ class AgentState(TypedDict):
     investigator_argument: str
     skeptic_argument: str
 
+    fact_checks: List
+
     verdict: str
 
     need_more_research: bool

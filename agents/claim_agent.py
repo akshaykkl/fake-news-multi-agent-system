@@ -5,12 +5,13 @@ llm = get_llm()
 def extract_claim(text):
 
     prompt = f"""
-Rewrite the user statement into a precise factual claim.
+Convert the user statement into a clear factual claim
+without changing its meaning.
 
 User statement:
 {text}
 
-Make the claim specific and verifiable.
+Never rewrite, invert, or change the meaning of the claim.
 """
 
     response = llm.invoke(prompt)

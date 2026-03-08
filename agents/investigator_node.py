@@ -7,17 +7,29 @@ def investigator_node(state):
 
     claim = state["claim"]
     evidence = state["evidence"]
-
+    fact_checks = state["fact_checks"]
     prompt = f"""
 You are an investigative journalist.
 
-Claim:
+Original claim:
 {claim}
 
 Evidence:
 {evidence}
 
-Argue why the claim might be TRUE.
+
+Fact-check database results:
+{fact_checks}
+
+Your task:
+Analyze whether the evidence SUPPORTS or CONTRADICTS the claim.
+
+Important rules:
+- Do NOT rewrite the claim.
+- Do NOT invert the claim.
+- Always evaluate the original claim exactly as written.
+
+Explain whether the evidence supports or contradicts the claim.
 """
 
     response = llm.invoke(prompt)

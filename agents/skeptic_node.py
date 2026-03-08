@@ -8,6 +8,7 @@ def skeptic_node(state):
     claim = state["claim"]
     investigator = state["investigator_argument"]
     evidence = state["evidence"]
+    fact_checks = state["fact_checks"]
 
     prompt = f"""
 You are a skeptical fact checker.
@@ -21,10 +22,10 @@ Investigator argument:
 Evidence:
 {evidence}
 
-Tasks:
+Fact check results:
+{fact_checks}
 
-1 Identify flaws in evidence
-2 Decide if MORE RESEARCH is needed
+Critique the investigator's reasoning and identify weaknesses.
 
 Return:
 
@@ -36,7 +37,7 @@ NeedMoreResearch: YES or NO
 
     state["skeptic_argument"] = response
 
-    if "YES" in response.upper():
+    if "NEEDMORESEARCH: YES" in response.upper():
         state["need_more_research"] = True
     else:
         state["need_more_research"] = False

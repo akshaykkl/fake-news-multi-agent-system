@@ -24,7 +24,11 @@ Return only the improved search query.
 
     new_evidence = collect_evidence(query)
 
-    state["evidence"].extend(new_evidence)
+    existing = {e["source"] for e in state["evidence"]}
+
+    for e in new_evidence:
+        if e["source"] not in existing:
+            state["evidence"].append(e)
 
     state["iteration"] += 1
 

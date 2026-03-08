@@ -2,6 +2,7 @@ from langgraph.graph import StateGraph, END
 
 from orchestrator.state import AgentState
 
+from agents.factcheck_node import factcheck_node
 from agents.investigator_node import investigator_node
 from agents.skeptic_node import skeptic_node
 from agents.judge_node import judge_node
@@ -23,24 +24,29 @@ def run_pipeline(user_input):
     evidence = collect_evidence(claim)
 
     initial_state = {
-        "claim": claim,
-        "evidence": evidence,
-        "investigator_argument": "",
-        "skeptic_argument": "",
-        "verdict": "",
-        "need_more_research": False,
-        "iteration": 0
+    "claim": claim,
+    "evidence": evidence,
+    "fact_checks": [],
+    "investigator_argument": "",
+    "skeptic_argument": "",
+    "verdict": "",
+    "need_more_research": False,
+    "iteration": 0
     }
 
     workflow = StateGraph(AgentState)
 
     workflow.add_node("investigator", investigator_node)
+    workflow.add_node("factcheck", factcheck_node)
     workflow.add_node("skeptic", skeptic_node)
     workflow.add_node("research", research_node)
     workflow.add_node("judge", judge_node)
 
-    workflow.set_entry_point("investigator")
+    workflow.set_entry_point("factcheck")
 
+    workflow.add_edge("factcheck", "investigator")
+
+    # MISSING EDGE (ADD THIS)
     workflow.add_edge("investigator", "skeptic")
 
     workflow.add_conditional_edges(
