@@ -5,12 +5,13 @@ llm = get_llm()
 def extract_claim(text):
 
     prompt = f"""
-Extract the main factual claim from the text.
+Convert the user statement into a clear factual claim
+without changing its meaning.
 
-Text:
+User statement:
 {text}
 
-Return only the claim.
+Never rewrite, invert, or change the meaning of the claim.
 """
 
     response = llm.invoke(prompt)
