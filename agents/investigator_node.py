@@ -1,12 +1,12 @@
 from models.llm import get_llm
-
+from agents.verdict_agent import format_evidence
 llm = get_llm()
 
 
 def investigator_node(state):
 
     claim = state["claim"]
-    evidence = state["evidence"]
+    evidence_text = format_evidence(state["evidence"])
     fact_checks = state["fact_checks"]
     prompt = f"""
 You are an investigative journalist.
@@ -15,21 +15,26 @@ Original claim:
 {claim}
 
 Evidence:
-{evidence}
-
+{evidence_text}
 
 Fact-check database results:
 {fact_checks}
 
-Your task:
-Analyze whether the evidence SUPPORTS or CONTRADICTS the claim.
+Task:
 
-Important rules:
+1. Restate the claim exactly.
+2. Compare the evidence directly against the claim.
+3. Determine if the evidence SUPPORTS or CONTRADICTS the claim.
+
+Rules:
 - Do NOT rewrite the claim.
 - Do NOT invert the claim.
-- Always evaluate the original claim exactly as written.
+- If evidence shows something different from the claim, say the claim is CONTRADICTED.
 
-Explain whether the evidence supports or contradicts the claim.
+Return:
+
+Analysis:
+EvidenceSupports: YES or NO
 """
 
     response = llm.invoke(prompt)

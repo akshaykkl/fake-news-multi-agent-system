@@ -36,9 +36,11 @@ Fact check database results:
 
 Determine:
 
-1. Verdict (True / False / Misleading)
-2. Confidence score (0-1)
-3. Explanation
+Return exactly in this format:
+
+Verdict: TRUE or FALSE or INCONCLUSIVE
+Confidence: 0.0-1.0
+Explanation: 1-2 sentences
 """
 
     response = llm.invoke(prompt)

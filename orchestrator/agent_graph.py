@@ -2,6 +2,8 @@ from langgraph.graph import StateGraph, END
 
 from orchestrator.state import AgentState
 
+from memory.faiss_memory import search_memory, add_memory
+
 from agents.factcheck_node import factcheck_node
 from agents.investigator_node import investigator_node
 from agents.skeptic_node import skeptic_node
@@ -12,13 +14,19 @@ from agents.evidence_agent import collect_evidence
 
 def decide_next(state):
 
-    if state["need_more_research"] and state["iteration"] < 2:
+    if state["need_more_research"] and state["iteration"] < 5:
         return "research"
 
     return "judge"
 
 def run_pipeline(user_input):
+    cached = search_memory(user_input)
 
+    if cached:
+        print("\n--- MEMORY HIT ---")
+        print(cached["verdict"])
+        return cached["verdict"]
+    
     claim = extract_claim(user_input)
 
     evidence = collect_evidence(claim)
@@ -76,4 +84,7 @@ def run_pipeline(user_input):
     print("\n--- Verdict ---")
     print(result["verdict"])
 
+
+    add_memory(claim, result["verdict"])
+    
     return result["verdict"]
