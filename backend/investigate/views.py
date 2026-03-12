@@ -1,16 +1,23 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from django.http import StreamingHttpResponse
+import json
+from orchestrator.agent_graph import run_pipeline_stream
 
-from orchestrator.agent_graph import run_pipeline
 
+def investigate_stream(request):
 
-@api_view(['POST'])
-def investigate(request):
+    claim = request.GET.get("claim")
 
-    claim = request.data.get("claim")
+    def event_stream():
 
-    result = run_pipeline(claim)
+        for event in run_pipeline_stream(claim):
 
-    return Response({
-        "result": result
-    })
+            yield f"data: {json.dumps(event)}\n\n"
+
+    response = StreamingHttpResponse(
+        event_stream(),
+        content_type="text/event-stream"
+    )
+
+    response["Cache-Control"] = "no-cache"
+
+    return response

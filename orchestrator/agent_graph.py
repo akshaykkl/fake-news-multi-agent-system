@@ -19,15 +19,26 @@ def decide_next(state):
 
     return "judge"
 
-def run_pipeline(user_input):
+def run_pipeline_stream(user_input):
     cached = search_memory(user_input)
 
     if cached:
-        print("\n--- MEMORY HIT ---")
-        print(cached["verdict"])
-        return cached["verdict"]
+        print("this is a match")
+        yield {
+            "type": "memory_hit",
+            "data": cached
+        }
+
+        yield {
+            "type": "final_verdict",
+            "verdict": cached["verdict"]
+        }
+
+        return
     
     claim = extract_claim(user_input)
+
+    yield {"type": "status", "message": "Collecting evidence"}
 
     evidence = collect_evidence(claim)
 
@@ -73,18 +84,42 @@ def run_pipeline(user_input):
     # IMPORTANT PART
     app = workflow.compile()
 
-    result = app.invoke(initial_state)
+    final_state = None
 
-    print("\n--- Investigator ---")
-    print(result["investigator_argument"])
+    for event in app.stream(initial_state):
 
-    print("\n--- Skeptic ---")
-    print(result["skeptic_argument"])
+        node = list(event.keys())[0]
+        state = event[node]
 
-    print("\n--- Verdict ---")
-    print(result["verdict"])
+        yield {
+            "type": "node",
+            "node": node,
+            "state": state
+        }
+
+        # capture final judge state
+        if node == "judge":
+            final_state = state
+
+    # print("\n--- Investigator ---")
+    # print(result["investigator_argument"])
+
+    # print("\n--- Skeptic ---")
+    # print(result["skeptic_argument"])
+
+    # print("\n--- Verdict ---")
+    # print(result["verdict"])
 
 
-    add_memory(claim, result["verdict"])
+    if final_state:
+
+        verdict = final_state.get("verdict")
+
+        add_memory(claim, verdict)
+
+        yield {
+            "type": "final_verdict",
+            "verdict": verdict
+        }
     
-    return result["verdict"]
+    # return result["verdict"]

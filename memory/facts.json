@@ -1,0 +1,18 @@
+[
+  {
+    "claim": "is kasaragod a nation",
+    "verdict": "Verdict: FALSE\nConfidence: 1\nExplanation: The evidence from all sources describes Kasaragod as a municipal town, a town, a city, or a vibrant town in the state of Kerala, India, but none of them indicate that it is a nation. Therefore, the claim that Kasaragod is a nation is contradicted by the evidence.",
+    "confidence": null,
+    "sources": null,
+    "explanation": null,
+    "timestamp": "2026-03-12T07:52:27.966307"
+  },
+  {
+    "claim": "kannur is a country",
+    "verdict": "Verdict: FALSE\nConfidence: 1\nExplanation: The evidence directly contradicts the claim that Kannur is a country, describing it as a city, district, or location within the Indian state of Kerala.",
+    "confidence": null,
+    "sources": null,
+    "explanation": null,
+    "timestamp": "2026-03-12T07:53:46.732660"
+  }
+]
