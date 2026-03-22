@@ -13,10 +13,15 @@ from agents.claim_agent import extract_claim
 from agents.evidence_agent import collect_evidence
 
 def decide_next(state):
+    print(f"\n[DEBUG] decide_next called.")
+    print(f"[DEBUG] state['need_more_research']: {state.get('need_more_research')}")
+    print(f"[DEBUG] state['iteration']: {state.get('iteration')}")
 
     if state["need_more_research"] and state["iteration"] < 5:
+        print("[DEBUG] Routing to: research")
         return "research"
 
+    print("[DEBUG] Routing to: judge")
     return "judge"
 
 def run_pipeline_stream(user_input):
@@ -28,10 +33,11 @@ def run_pipeline_stream(user_input):
             "type": "memory_hit",
             "data": cached
         }
-
+        
         yield {
             "type": "final_verdict",
-            "verdict": cached["verdict"]
+            "verdict": cached["verdict"],
+            "sources": cached.get("sources", [])
         }
 
         return
@@ -41,10 +47,12 @@ def run_pipeline_stream(user_input):
     yield {"type": "status", "message": "Collecting evidence"}
 
     evidence = collect_evidence(claim)
+    sources = list(set([e["source"] for e in evidence]))
 
     initial_state = {
     "claim": claim,
     "evidence": evidence,
+    "sources": sources,
     "fact_checks": [],
     "investigator_argument": "",
     "skeptic_argument": "",
@@ -90,6 +98,15 @@ def run_pipeline_stream(user_input):
 
         node = list(event.keys())[0]
         state = event[node]
+        
+        print(f"\n[DEBUG] Node executed: {node}")
+        print(f"[DEBUG] need_more_research is now: {state.get('need_more_research')}")
+        if node == "skeptic":
+            print(f"[DEBUG] Skeptic argument snippet: {state.get('skeptic_argument', '')[:100]}...")
+
+        # Extract sources from state if the evidence list changed (e.g., after research loop)
+        if "evidence" in state:
+            state["sources"] = list(set([e["source"] for e in state["evidence"]]))
 
         yield {
             "type": "node",
@@ -101,25 +118,43 @@ def run_pipeline_stream(user_input):
         if node == "judge":
             final_state = state
 
-    # print("\n--- Investigator ---")
-    # print(result["investigator_argument"])
 
-    # print("\n--- Skeptic ---")
-    # print(result["skeptic_argument"])
-
-    # print("\n--- Verdict ---")
-    # print(result["verdict"])
 
 
     if final_state:
 
-        verdict = final_state.get("verdict")
+        verdict_raw = final_state.get("verdict", "")
+        sources = final_state.get("sources", [])
 
-        add_memory(claim, verdict)
+        
+        
+        confidence = None
+        explanation = None
+        clean_verdict = verdict_raw
+        
+        lines = verdict_raw.split('\n')
+        for line in lines:
+            if line.startswith('Verdict:'):
+                 clean_verdict = line.replace('Verdict:', '').split()[0]
+            elif line.startswith('Confidence:'):
+                try:
+                    confidence = float(line.replace('Confidence:', '').strip())
+                except ValueError:
+                    pass
+            elif line.startswith('Explanation:'):
+                explanation = line.replace('Explanation:', '').strip()
+                # If there are subsequent lines in the explanation, we want to capture those too 
+                # (but based on the simple split, we'll just take the rest of the string after explanation)
+                exp_start = verdict_raw.find('Explanation:')
+                if exp_start != -1:
+                    explanation = verdict_raw[exp_start + len('Explanation:'):].strip()
+
+        add_memory(claim, clean_verdict, confidence=confidence, sources=sources, explanation=explanation)
 
         yield {
             "type": "final_verdict",
-            "verdict": verdict
+            "verdict": verdict_raw,
+            "sources": sources
         }
     
     # return result["verdict"]

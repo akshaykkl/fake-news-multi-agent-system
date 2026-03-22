@@ -83,22 +83,27 @@ function getResearchRounds(events: StreamEvent[]) {
 }
 
 function App() {
+  const [claim, setClaim] = useState<string>("")
   const [events, setEvents] = useState<StreamEvent[]>([])
   const [timeline, setTimeline] = useState<TimelineItem[]>([])
   const [verdict, setVerdict] = useState<string | null>(null)
+  const [sources, setSources] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isStreaming, setIsStreaming] = useState(false)
   const connectionRef = useRef<StreamConnection | null>(null)
 
-  const startInvestigation = (claim: string) => {
+  const startInvestigation = (newClaim: string) => {
     connectionRef.current?.disconnect()
+    setClaim(newClaim)
     setEvents([])
     setTimeline([])
     setVerdict(null)
+    setSources([])
     setError(null)
     setIsStreaming(true)
 
-    connectionRef.current = connectToInvestigationStream(claim, {
+    // Reset sources when starting
+    connectionRef.current = connectToInvestigationStream(newClaim, {
       onEvent: (event) => {
         setEvents((prevEvents) => {
           const nextEvents = [...prevEvents, event]
@@ -108,14 +113,27 @@ function App() {
 
         if (event.type === "memory_hit") {
           setVerdict(event.data.verdict)
+          if (event.data.sources && Array.isArray(event.data.sources)) {
+            setSources(event.data.sources as string[])
+          }
           setIsStreaming(false)
           connectionRef.current?.disconnect()
           connectionRef.current = null
           return
         }
+        
+        // Handle node events and extract sources
+        if (event.type === "node") {
+           if (event.state.sources && Array.isArray(event.state.sources)) {
+               setSources(event.state.sources as string[])
+           }
+        }
 
         if (event.type === "node" && event.state.verdict) {
           setVerdict(event.state.verdict)
+          if (event.state.sources && Array.isArray(event.state.sources)) {
+              setSources(event.state.sources as string[])
+          }
           setIsStreaming(false)
           connectionRef.current?.disconnect()
           connectionRef.current = null
@@ -151,6 +169,9 @@ function App() {
 
       {error ? <div className="error-banner">{error}</div> : null}
 
+      {/* Moved Verdict to the top for prominence */}
+      <Verdict verdict={verdict} sources={sources} />
+
       <section className="overview-grid">
         <article className="overview-card">
           <span className="overview-label">Active Stage</span>
@@ -169,11 +190,9 @@ function App() {
         </article>
       </section>
 
-      <WorkflowGraph events={events} verdict={verdict} isStreaming={isStreaming} />
+      <WorkflowGraph claim={claim} events={events} sources={sources} verdict={verdict} isStreaming={isStreaming} />
 
       <InvestigationLog events={events} items={timeline} isStreaming={isStreaming} />
-
-      <Verdict verdict={verdict} />
     </div>
   )
 }

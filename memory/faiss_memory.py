@@ -9,7 +9,7 @@ from sentence_transformers import SentenceTransformer
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MEMORY_DIR = os.path.join(BASE_DIR, "backend", "memory")
+MEMORY_DIR = os.path.join(BASE_DIR, "memory")
 
 os.makedirs(MEMORY_DIR, exist_ok=True)
 # storage files
