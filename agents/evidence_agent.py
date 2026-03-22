@@ -19,15 +19,17 @@ Article:
 
 def collect_evidence(claim):
 
-    urls = search_web(claim)
-
+    results = search_web(claim)
+    print("Search results:", results)
     articles = []
 
-    for url in urls:
+    for r in results:
 
+        url = r["url"]   # FIX HERE
+        
         text = get_article_text(url)
 
-        if len(text) > 200:
+        if text and len(text) > 200:
 
             summary = summarize_article(text[:2000])
 

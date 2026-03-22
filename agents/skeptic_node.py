@@ -25,11 +25,17 @@ Evidence:
 Fact check results:
 {fact_checks}
 
-Critique the investigator's reasoning and identify weaknesses.
+Your goal is to critique the investigator's reasoning and decide if the current evidence is sufficient to make a sound True/False judgment.
+If the evidence already directly supports or directly contradicts the claim with reliable information, you MUST conclude the investigation.
+
+RULES:
+- Do NOT request more research if the current evidence is already sufficient to debunk or verify the claim.
+- Do NOT request more research just to "be absolutely sure" or "check more edge cases" if the primary sources already provide a clear answer.
+- Only output NeedMoreResearch: YES if the evidence is completely missing, completely contradictory amongst itself, or fundamentally fails to address the core claim.
 
 Return:
 
-Critique:
+Critique: [Your short critique]
 NeedMoreResearch: YES or NO
 """
 
@@ -37,7 +43,7 @@ NeedMoreResearch: YES or NO
 
     state["skeptic_argument"] = response
 
-    if "NEEDMORESEARCH: YES" in response.upper():
+    if "NEEDMORERESEARCH: YES" in response.upper():
         state["need_more_research"] = True
     else:
         state["need_more_research"] = False

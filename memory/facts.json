@@ -1,0 +1,14 @@
+[
+  {
+    "claim": "dogs generally has 5 legs",
+    "verdict": "FALSE",
+    "confidence": 1.0,
+    "sources": [
+      "https://travelingwithyourpets.com/how-many-legs-does-a-dog-have/",
+      "https://dogsandclogs.com/how-many-legs-do-dogs-have/",
+      "https://thepetlabco.com/learn/dog/health-wellness/dog-leg-anatomy"
+    ],
+    "explanation": "The evidence from all three sources directly contradicts the claim that dogs generally have 5 legs, stating that dogs are quadrupeds and have four legs.",
+    "timestamp": "2026-03-17T12:43:20.950366"
+  }
+]

@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 # Load and access environment variables
-load_dotenv(dotenv_path='.env')
+load_dotenv()
 groq_key = os.getenv("GROQ_KEY")
 
 def get_llm():

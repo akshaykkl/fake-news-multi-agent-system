@@ -33,8 +33,11 @@ Your task:
 Determine whether the ORIGINAL claim is correct.
 
 Rules:
+- Evaluate ONLY the original claim.
 - Compare the evidence directly against the claim.
 - If the evidence contradicts the claim, the verdict MUST be FALSE.
+- Never rely on outside knowledge.
+- Use only the provided evidence.
 
 Return exactly:
 

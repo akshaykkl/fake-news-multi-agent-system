@@ -12,8 +12,13 @@ User statement:
 {text}
 
 Never rewrite, invert, or change the meaning of the claim.
+Rewrite only for grammar clarity.
+Do NOT change meaning.
+Do NOT infer missing information.
+Return ONLY the claim sentence.
+Do not explain.
 """
 
     response = llm.invoke(prompt)
 
-    return response.content.strip()
+    return text.strip()
