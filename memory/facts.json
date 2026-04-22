@@ -10,5 +10,33 @@
     ],
     "explanation": "The evidence from all three sources directly contradicts the claim that dogs generally have 5 legs, stating that dogs are quadrupeds and have four legs.",
     "timestamp": "2026-03-17T12:43:20.950366"
+  },
+  {
+    "claim": "india got freedom at 1952",
+    "verdict": "FALSE",
+    "confidence": 1.0,
+    "sources": [
+      "http://news.bbc.co.uk/onthisday/hi/dates/stories/february/10/newsid_3485000/3485587.stm",
+      "https://www.culturalindia.net/indian-history/modern-history/indian-independence.html",
+      "https://www.britannica.com/topic/Timeline-of-the-Indian-Independence-Movement",
+      "https://en.wikipedia.org/wiki/Indian_independence_movement",
+      "https://en.wikipedia.org/wiki/History_of_India_(1947\u2013present)"
+    ],
+    "explanation": "The evidence directly contradicts the original claim, stating that India gained independence in 1947, not 1952.",
+    "timestamp": "2026-04-17T15:28:21.943855"
+  },
+  {
+    "claim": "india got freedom at 1958",
+    "verdict": "FALSE",
+    "confidence": 1.0,
+    "sources": [
+      "https://www.cntraveller.in/story/heres-why-india-got-freedom-at-midnight/",
+      "https://scroll.in/latest/1051436/india-got-freedom-after-1000-years-of-foreign-rule-says-narendra-modi-at-us-congress",
+      "https://countercurrents.org/2021/11/kangana-ranaut-how-and-when-india-got-freedom/",
+      "https://www.indiatoday.in/india/story/exclusive-attlee-told-bengal-governor-netaji-not-gandhi-got-india-freedom-claims-book-305512-2016-01-25",
+      "https://www.linkedin.com/pulse/simply-put-what-happened-before-india-got-freedom--1f"
+    ],
+    "explanation": "The evidence provided directly contradicts the claim that India got freedom at 1958, as all the sources, except the first one which does not specify the year, suggest that India gained freedom in 1947, not 1958.",
+    "timestamp": "2026-04-17T15:31:28.305731"
   }
 ]

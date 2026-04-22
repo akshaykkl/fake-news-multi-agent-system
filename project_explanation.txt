@@ -1,0 +1,56 @@
+# Fake News Agent System - Project Architecture & Overview
+
+## 1. Project Overview
+The **Fake News Agent System** is a full-stack, AI-powered fact-checking application that determines the veracity of claims using a multi-agent workflow. When a user submits a claim or news piece, the system deploys several specialized AI agents that collaboratively search the web, evaluate evidence, argue points, and conclude with a final verdict (e.g., True, False, Misleading) along with a confidence score and explanation.
+
+## 2. High-Level Architecture
+The project is split into a separated Frontend and Backend, orchestrated via Docker.
+
+*   **Frontend**: Built with **React**, **TypeScript**, and **Vite**. It uses `reactflow` for dynamic visualizations (like visualizing the agent nodes or evidence maps) and `axios` for communicating with the backend. It runs on port `5173`.
+*   **Backend**: Built with **Python** using the **Django** web framework. The backend manages the API endpoints, agent orchestration, and the caching database. It processes requests and streams intermediate agent steps back to the client. It runs on port `8000`.
+*   **Containerization**: Both services are containerized using **Docker** and managed via **Docker Compose** (`docker-compose.yml`), making deployment simple and uniform across operating systems.
+
+## 3. The Multi-Agent Workflow (LangGraph) & Agent Functions
+The core intelligence of the system is modeled as a state machine using **LangGraph**. Below is exactly how each node and function accomplishes its task under the hood:
+
+1.  **Claim Extraction (`claim_agent.py`)**:
+    *   **How it works**: Takes the user's freeform text input and uses a Large Language Model (LLM) with a strict prompt rule to rephrase the statement into a clear, factual claim without changing the original meaning or inferring new information.
+
+2.  **Evidence Collection (`evidence_agent.py` & `tools/`)**:
+    *   **How it works**: 
+        *   First, it triggers `web_search.py`, which uses the `DuckDuckGo (DDGS)` search engine to lookup the claim. It programmatically filters out unverified forums (Quora, WordPress) and prioritizes trusted journalistic domains (Reuters, BBC, APNews). 
+        *   Then, it passes the URLs to `web_scraper.py`, which uses the Python `newspaper` library to download and extract the text content from the articles HTML.
+        *   Finally, the raw article text is passed to an LLM which squashes it into a concise, 3-sentence summary to save processing tokens later.
+
+3.  **Fact-Check Node (`factcheck_node.py`)**:
+    *   **How it works**: Queries predefined fact-checking resources or databases to see if the claim has already been debunked elsewhere, structuring the results for the next agent.
+
+4.  **Investigator Node (`investigator_node.py`)**:
+    *   **How it works**: Prompts an LLM to act as an "Investigative Journalist". It injects the original claim, the summarized evidence, and the database fact-checks. The LLM must directly compare the evidence to the claim and determine if the evidence explicitly "SUPPORTS" or "CONTRADICTS" it, outputting an analytical argument.
+
+5.  **Skeptic Node (`skeptic_node.py`)**:
+    *   **How it works**: Prompts an LLM to play "Devil's Advocate". It reads the Investigator's argument and the sources to critique the reasoning. If it finds the evidence insufficient, contradictory amongst itself, or fundamentally detached from the core claim, the LLM outputs `NeedMoreResearch: YES`.
+
+6.  **Research Node (`research_node.py`) - (The Loop)**:
+    *   **How it works**: If the Skeptic triggers more research, this node uses an LLM to read the Skeptic's precise critique and generates a *new, highly targeted web search query*. It then triggers the `Evidence Collection` process again, appending the new sources without duplicating existing ones. (This loop is capped at 5 iterations).
+
+7.  **Judge Node (`judge_node.py`)**:
+    *   **How it works**: Operates as the final LLM evaluator. It ignores outside knowledge and strictly relies on the gathered evidence, the investigator's stance, and the skeptic's critique to output a final JSON-like structure: a `Verdict` (TRUE/FALSE/INCONCLUSIVE), a `Confidence` score (0.0 to 1.0), and a short text `Explanation`.
+
+## 4. System Components & Modules
+*   **`orchestrator/agent_graph.py`**: Contains the LangGraph configuration, defining the nodes (agents) and the conditional edges (the flow of logic).
+*   **`agents/`**: Contains the individual Python implementations for every single agent profile (`investigator_node.py`, `skeptic_node.py`, etc.).
+*   **`tools/`**: Contains utility functions allowing agents to interact with the outside world, specifically `web_search.py` (DuckDuckGo search) and `web_scraper.py` (Newspaper article scraping).
+*   **`memory/`**: Implements the efficient caching layer using FAISS.
+*   **`models/`**: Defines the LLM integrations.
+
+## 5. Caching & Memory Layer (FAISS)
+To optimize performance and reduce LLM API costs drastically, the system features a semantic memory cache. 
+*   **How it works (`faiss_memory.py`)**: 
+    *   It uses the `sentence-transformers` library (specifically the `all-MiniLM-L6-v2` model) to convert the user's claim into a 384-dimensional mathematical vector (an embedding).
+    *   It checks this vector against a stored **FAISS** (Facebook AI Similarity Search) index using an L2 distance threshold. 
+    *   If a highly similar claim (e.g., >80% similarity threshold) has been fact-checked previously, it instantly reads the metadata from a local `facts.json` file and returns a "Memory Hit" with the cached verdict, explanation, and cited sources. The expensive agent loop is totally bypassed.
+    *   If no match is found, the agent graph runs, and the Judge's final output is then vectorized and appended to the FAISS index to answer future identical requests.
+
+## 6. Real-Time Streaming
+*   **How it works**: The backend Python LangGraph execution utilizes Python generators (`yield`). As each node (agent) finishes executing its function, it yields its current state back through the Django API to the client in real-time. This allows the React UI to display loading messages like "Investigating...", "Skeptic reviewing...", giving a transparent, live window into the AI's internal dialogue.
